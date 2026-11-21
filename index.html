@@ -85,7 +85,7 @@ function equityStart() { return stakes.equity || 17; }            // hole where 
 function TWO_MAN_WIN(b)   { return (b ?? stakes.hole) * 1.5; }  // $8 -> $12
 function THREE_MAN_WIN(b) { return (b ?? stakes.hole); }        // $8
 function LONE_WOLF(b)     { return (b ?? stakes.hole) * 4; }    // $8 -> $32 total ($8 from each of the 4)
-// Holes 17 and 18: the group picks the bet on the spot (hole numbers 17, 18)
+// Holes 17 and 18: the Wolf picks the bet once he's chosen (hole numbers 17, 18)
 const PRESS_HOLES = [17, 18];
 function holeBet(h) { return (h && h.bet != null) ? h.bet : stakes.hole; }
 const MAX_PAID      = 2;  // ties carry over; one hole pays at most 2 holes' worth,
@@ -376,6 +376,29 @@ function drawMain() {
   html += '<p>🐺 <span class="wolf">' + players[pickedWolf] + '</span> is the Wolf</p>';
   html += '<p class="muted">Tee order: ' + order.map(p => players[p]).join(" → ") + '</p>';
 
+  // ---- Step A2: on 17 and 18 the Wolf picks the bet ----
+  if (PRESS_HOLES.includes(holeNum) && pickedBet === null) {
+    let base = stakes.hole;
+    html += '<p class="muted">Hole ' + holeNum + ': ' + players[pickedWolf] + ' picks the bet (each on 3-man side):</p>';
+    for (let m of [1, 2, 3, 4]) {
+      let b = base * m;
+      html += '<button onclick="chooseBet(' + b + ')">$' + fmt(b) +
+              ' <span class="muted" style="font-size:13px">· ' + betText(b) + '</span></button>';
+    }
+    html += '<div class="setup-row" style="align-items:center;margin-top:8px"><span class="name">Other amount $</span>' +
+            '<input class="hcp" id="hBet" type="number" inputmode="decimal" step="1" min="0" value="' + base + '"></div>' +
+            '<button class="small" onclick="chooseBet(parseFloat(document.getElementById(\'hBet\').value))">Use this amount</button>';
+    html += (holeNum >= equityStart() ? ' <button class="small" onclick="pickedWolf = null; draw()">Change Wolf</button>' : '') +
+            ' ' + undoButton() + '</div>';
+    app.innerHTML = html;
+    return;
+  }
+  if (PRESS_HOLES.includes(holeNum)) {
+    html += '<div class="carry" style="background:#e3eefb;color:#1d3557"><b>Bet on hole ' + holeNum + ': $' + fmt(pickedBet) +
+            '</b> (Wolf\'s pick)<div style="margin-top:6px">3-man side $' + fmt(THREE_MAN_WIN(pickedBet)) + ' each · ' + betText(pickedBet) + '</div>' +
+            '<button class="small" style="margin-top:6px" onclick="pickedBet = null; draw()">Change bet</button></div>';
+  }
+
   // ---- Step B: partner ----
   if (pickedPartner === null) {
     html += '<p class="muted">Who does the Wolf take?</p>';
@@ -405,14 +428,6 @@ function drawMain() {
   html += '<div class="verdict">Best net: Wolf side <b>' + preview.wolfBest + '</b> vs others <b>' + preview.otherBest +
           '</b> → <b>' + verdict + '</b></div>';
 
-  if (PRESS_HOLES.includes(holeNum)) {
-    let b = pickedBet ?? stakes.hole;
-    html += '<div class="carry" style="background:#e3eefb;color:#1d3557">' +
-            '<b>Bet on hole ' + holeNum + '</b> — each on 3-man side $ ' +
-            '<input id="hBet" type="number" inputmode="decimal" step="1" min="0" value="' + b + '" ' +
-            'style="width:80px;font-size:17px;padding:6px" oninput="setBet(this.value)">' +
-            '<div id="betText" style="margin-top:6px">' + betText(b) + '</div></div>';
-  }
   html += '<button class="go" onclick="finishHole()">Save hole ' + holeNum + '</button>';
   html += '<button class="small" onclick="pickedPartner = null; draw()">Change partner</button> ' + undoButton() + '</div>';
 
@@ -432,11 +447,11 @@ function betText(b) {
   return '2-man side $' + fmt(TWO_MAN_WIN(b)) + ' each · Lone Wolf $' + fmt(LONE_WOLF(b)) + ' ($' + fmt(b) + ' from each)';
 }
 
-// Update the bet as it's typed, without redrawing (so the keyboard stays up)
-function setBet(v) {
+// The Wolf's bet for hole 17 or 18
+function chooseBet(v) {
   pickedBet = parseFloat(v);
   if (isNaN(pickedBet) || pickedBet < 0) pickedBet = 0;
-  document.getElementById("betText").innerHTML = betText(pickedBet);
+  draw();
 }
 
 function resetHole() {
