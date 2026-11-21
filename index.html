@@ -13,44 +13,53 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#2f5d3a">
 <style>
-  body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: #f2f5ef; color: #1d2b1f; }
-  header { background: #2f5d3a; color: white; padding: 14px 16px; text-align: center; }
-  header h1 { margin: 0; font-size: 21px; }
-  header div { font-size: 13px; opacity: 0.85; margin-top: 2px; }
-  main { max-width: 480px; margin: 0 auto; padding: 12px; }
-  .box { background: white; border-radius: 12px; padding: 14px; margin-bottom: 12px;
-         box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
-  h2 { font-size: 17px; margin: 0 0 10px; }
-  .muted { color: #5b6b5d; font-size: 14px; }
-  input { font-size: 17px; padding: 10px; border: 1px solid #c9d3c6; border-radius: 8px; box-sizing: border-box; }
-  .setup-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  /* Built for reading outdoors: large type, strong contrast, big tap targets */
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: #eef2ea; color: #111; font-size: 19px; line-height: 1.35; }
+  header { background: #1f4a2b; color: white; padding: 14px 16px; text-align: center; }
+  header h1 { margin: 0; font-size: 26px; }
+  header div { font-size: 17px; margin-top: 4px; }
+  main { max-width: 520px; margin: 0 auto; padding: 10px; }
+  .box { background: white; border-radius: 14px; padding: 16px; margin-bottom: 14px;
+         box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+  h2 { font-size: 23px; margin: 0 0 12px; }
+  h2 .muted { font-size: 18px; font-weight: 600; }
+  p { margin: 10px 0; }
+  .muted { color: #333; font-size: 18px; }
+  input { font-size: 21px; padding: 12px; border: 2px solid #8a9a86; border-radius: 10px; box-sizing: border-box; }
+  select { font-size: 20px !important; padding: 10px !important; }
+  .setup-row { display: flex; gap: 8px; margin-bottom: 10px; }
   .setup-row .name { flex: 1; }
-  .setup-row .hcp { width: 74px; }
-  button { font-size: 16px; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
-           background: #dfe9dc; color: #1d2b1f; width: 100%; margin-bottom: 8px; text-align: left; }
-  button.go { background: #2f5d3a; color: white; text-align: center; font-weight: 600; }
-  button.small { width: auto; font-size: 14px; padding: 8px 12px; background: #e9e2d6; text-align: center; }
-  button:active { filter: brightness(0.92); }
-  button.chip { width: auto; display: inline-block; font-size: 14px; padding: 8px 12px; margin: 0 6px 6px 0;
-                border-radius: 18px; background: white; border: 1px solid #c9d3c6; text-align: center; }
-  button.chip.on { background: #2f5d3a; color: white; border-color: #2f5d3a; }
-  button.chip.on .muted { color: #d5e4d1; }
-  .row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #eef1ec; }
+  .setup-row .hcp { width: 90px; }
+  button { font-size: 21px; padding: 16px; border-radius: 12px; border: 2px solid #b9c8b4; cursor: pointer;
+           background: #e4eee0; color: #111; width: 100%; margin-bottom: 10px; text-align: left; min-height: 58px; }
+  button.go { background: #1f4a2b; border-color: #1f4a2b; color: white; text-align: center; font-weight: 700; font-size: 22px; }
+  button.small { width: 100%; font-size: 19px; padding: 12px; background: #efe8db; border-color: #d6cbb6; text-align: center; min-height: 52px; }
+  button:active { filter: brightness(0.88); }
+  button.chip { font-size: 21px; padding: 14px; margin: 0 0 10px 0; border-radius: 12px; background: white; border: 2px solid #8a9a86; }
+  button.chip.on { background: #1f4a2b; color: white; border-color: #1f4a2b; }
+  button.chip.on .muted { color: #e6f0e3; }
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #dde3da; font-size: 21px; }
   .row:last-child { border-bottom: none; }
-  .plus { color: #1f7a35; font-weight: 700; } .minus { color: #b8321f; font-weight: 700; }
-  .carry { background: #fff3cd; color: #6b5200; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; }
-  .wolf { font-weight: 700; }
-  .score { display: flex; align-items: center; gap: 8px; }
-  .score button { width: 38px; height: 38px; border-radius: 50%; padding: 0; margin: 0; font-size: 20px; text-align: center; }
-  .score b { width: 26px; text-align: center; font-size: 20px; }
-  .dot { color: #b8321f; font-size: 12px; }
-  .verdict { background: #eaf2e7; border-radius: 8px; padding: 10px; margin: 10px 0; font-size: 15px; }
-  .review { border-bottom: 1px solid #eef1ec; padding: 4px 0; cursor: pointer; }
+  .stand { font-size: 23px; font-weight: 600; }
+  .stand .money { font-size: 25px; }
+  .lead { background: #e5f3e3; border-radius: 8px; padding-left: 8px; padding-right: 8px; }
+  .last { background: #fbe6e2; border-radius: 8px; padding-left: 8px; padding-right: 8px; }
+  .plus { color: #0d5f22; font-weight: 800; } .minus { color: #a3200b; font-weight: 800; }
+  .carry { background: #ffe9a8; color: #3d2f00; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 19px; font-weight: 600; }
+  .wolfline { font-size: 26px; font-weight: 800; margin: 8px 0; }
+  .wolf { font-weight: 800; }
+  .betbig { font-size: 30px; font-weight: 800; }
+  .score { display: flex; align-items: center; gap: 10px; }
+  .score button { width: 60px; height: 60px; min-height: 60px; border-radius: 50%; padding: 0; margin: 0; font-size: 32px; font-weight: 700; text-align: center; }
+  .score b { width: 40px; text-align: center; font-size: 32px; }
+  .dot { color: #a3200b; font-size: 18px; }
+  .verdict { background: #dcebd6; border-radius: 10px; padding: 12px; margin: 12px 0; font-size: 20px; }
+  .review { border-bottom: 1px solid #dde3da; padding: 6px 0; cursor: pointer; }
   .review:last-child { border-bottom: none; }
   .review .row { border-bottom: none; }
-  table.rev { width: 100%; border-collapse: collapse; font-size: 14px; }
-  table.rev th { text-align: left; font-weight: 600; color: #5b6b5d; font-size: 12px; padding: 4px 2px; }
-  table.rev td { padding: 4px 2px; border-top: 1px solid #f0f2ee; }
+  table.rev { width: 100%; border-collapse: collapse; font-size: 19px; }
+  table.rev th { text-align: left; font-weight: 700; color: #333; font-size: 17px; padding: 6px 2px; }
+  table.rev td { padding: 6px 2px; border-top: 1px solid #dde3da; }
 </style>
 </head>
 <body>
@@ -245,11 +254,11 @@ function historyHTML() {
 
     html += '<div class="review" onclick="toggleReview(' + i + ')">' +
             '<div class="row"><span><b>Hole ' + (i + 1) + '</b> <span class="muted">· par ' + PAR[i] + '</span><br>' +
-            '<span class="muted" style="font-size:13px">🐺 ' + side + ' — ' + outcome + '</span></span>' +
+            '<span class="muted" style="font-size:18px">🐺 ' + side + ' — ' + outcome + '</span></span>' +
             '<span class="muted">' + (open ? '▲' : '▼') + '</span></div>';
 
     if (open) {
-      html += '<div class="muted" style="font-size:13px;margin:4px 0">Best net: Wolf side ' + e.wolfBest + ' vs others ' + e.otherBest + '</div>';
+      html += '<div class="muted" style="font-size:18px;margin:6px 0">Best net: Wolf side ' + e.wolfBest + ' vs others ' + e.otherBest + '</div>';
       html += '<table class="rev"><tr><th></th><th>Gross</th><th>Net</th><th>$</th></tr>';
       for (let p of teeOrder(h.wolf)) {
         let onWolf = (p === h.wolf || p === h.partner);
@@ -291,11 +300,11 @@ function drawMain() {
       '<p class="muted" id="stakeText"></p>' +
       '<h2 style="margin-top:16px">Options</h2>' +
       '<div class="setup-row" style="align-items:center"><span class="name">Ties carry over</span>' +
-      '<select id="sCarry" style="font-size:17px;padding:8px;border-radius:8px">' +
+      '<select id="sCarry" style="border-radius:10px">' +
         '<option value="1"' + (stCarries ? ' selected' : '') + '>Yes</option>' +
         '<option value="0"' + (!stCarries ? ' selected' : '') + '>No</option></select></div>' +
       '<div class="setup-row" style="align-items:center"><span class="name">Biggest loser picks Wolf starting on</span>' +
-      '<select id="sEquity" style="font-size:17px;padding:8px;border-radius:8px">' + eqOptions + '</select></div>';
+      '<select id="sEquity" style="border-radius:10px">' + eqOptions + '</select></div>';
     html += '<button class="go" onclick="toOrder()">Next: tee order</button></div>';
     app.innerHTML = html;
     stakePreview();
@@ -333,10 +342,11 @@ function drawMain() {
   // ---- Standings ----
   html += '<div class="box"><h2>Standings</h2>';
   let ranked = [0,1,2,3,4].sort((a, b) => money[b] - money[a]);
-  for (let p of ranked) {
-    html += '<div class="row"><span>' + players[p] + ' <span class="muted">(' + hcps[p] + ')</span></span>' +
-            dollars(money[p]) + '</div>';
-  }
+  ranked.forEach((p, k) => {
+    let cls = (k === 0 && money[p] > 0) ? ' lead' : (k === 4 && money[p] < 0) ? ' last' : '';
+    html += '<div class="row stand' + cls + '"><span>' + players[p] + ' <span class="muted">(' + hcps[p] + ')</span></span>' +
+            '<span class="money">' + dollars(money[p]) + '</span></div>';
+  });
   html += '</div>';
 
   if (holeNum > 18) {
@@ -373,7 +383,7 @@ function drawMain() {
   }
 
   let order = teeOrder(pickedWolf);
-  html += '<p>🐺 <span class="wolf">' + players[pickedWolf] + '</span> is the Wolf</p>';
+  html += '<div class="wolfline">🐺 ' + players[pickedWolf] + ' is the Wolf</div>';
   html += '<p class="muted">Tee order: ' + order.map(p => players[p]).join(" → ") + '</p>';
 
   // ---- Step A2: on 17 and 18 the Wolf picks the bet ----
@@ -382,8 +392,8 @@ function drawMain() {
     html += '<p class="muted">Hole ' + holeNum + ': ' + players[pickedWolf] + ' picks the bet (each on 3-man side):</p>';
     for (let m of [1, 2, 3, 4]) {
       let b = base * m;
-      html += '<button onclick="chooseBet(' + b + ')">$' + fmt(b) +
-              ' <span class="muted" style="font-size:13px">· ' + betText(b) + '</span></button>';
+      html += '<button onclick="chooseBet(' + b + ')"><span class="betbig">$' + fmt(b) + '</span>' +
+              '<br><span class="muted">2-man $' + fmt(TWO_MAN_WIN(b)) + ' · Lone Wolf $' + fmt(LONE_WOLF(b)) + '</span></button>';
     }
     html += '<div class="setup-row" style="align-items:center;margin-top:8px"><span class="name">Other amount $</span>' +
             '<input class="hcp" id="hBet" type="number" inputmode="decimal" step="1" min="0" value="' + base + '"></div>' +
@@ -394,8 +404,8 @@ function drawMain() {
     return;
   }
   if (PRESS_HOLES.includes(holeNum)) {
-    html += '<div class="carry" style="background:#e3eefb;color:#1d3557"><b>Bet on hole ' + holeNum + ': $' + fmt(pickedBet) +
-            '</b> (Wolf\'s pick)<div style="margin-top:6px">3-man side $' + fmt(THREE_MAN_WIN(pickedBet)) + ' each · ' + betText(pickedBet) + '</div>' +
+    html += '<div class="carry" style="background:#dbe8f8;color:#0e2440">Hole ' + holeNum + ' bet (Wolf\'s pick): <span class="betbig">$' + fmt(pickedBet) + '</span>' +
+            '<div style="margin-top:6px;font-weight:400">3-man $' + fmt(THREE_MAN_WIN(pickedBet)) + ' · 2-man $' + fmt(TWO_MAN_WIN(pickedBet)) + ' · Lone Wolf $' + fmt(LONE_WOLF(pickedBet)) + '</div>' +
             '<button class="small" style="margin-top:6px" onclick="pickedBet = null; draw()">Change bet</button></div>';
   }
 
@@ -418,7 +428,7 @@ function drawMain() {
     let onWolf = (p === pickedWolf || p === pickedPartner);
     html += '<div class="row"><span>' + (onWolf ? '🐺 ' : '') + players[p] + ' ' +
             '<span class="dot">' + '●'.repeat(s) + '</span>' +
-            '<br><span class="muted" style="font-size:12px">net ' + net(p, i, scores[p]) + '</span></span>' +
+            '<br><span class="muted" style="font-size:17px">net ' + net(p, i, scores[p]) + '</span></span>' +
             '<span class="score"><button onclick="bump(' + p + ',-1)">−</button><b>' + scores[p] +
             '</b><button onclick="bump(' + p + ',1)">+</button></span></div>';
   }
