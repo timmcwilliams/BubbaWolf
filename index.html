@@ -90,7 +90,7 @@ let stakes = { hole: 8, carries: true, equity: 17 };   // $8 for the 3-man side,
 // Game options, set on the setup screen:
 function carriesOn()   { return stakes.carries !== false; }       // ties carry to the next hole?
 function equityStart() { return stakes.equity || 17; }            // hole where the biggest loser picks Wolf (19 = never)
-function startCarry()  { return stakes.startCarry || 0; }         // holes already carrying when the round starts (0-3)
+function startCarry()  { return stakes.startCarry ? 1 : 0; }      // 1 carry at the start (paid on the first hole won), or none
 // Each takes an optional bet; without one it uses the regular hole bet
 function TWO_MAN_WIN(b)   { return (b ?? stakes.hole) * 1.5; }  // $8 -> $12
 function THREE_MAN_WIN(b) { return (b ?? stakes.hole); }        // $8
@@ -294,7 +294,8 @@ function drawMain() {
     let stEquity = st.equity || 17;
     let stStart = st.startCarry || 0;
     let scOptions = '';
-    for (let c = 0; c <= 3; c++) scOptions += '<option value="' + c + '"' + (c === stStart ? ' selected' : '') + '>' + c + '</option>';
+    scOptions = '<option value="0"' + (stStart === 0 ? ' selected' : '') + '>None</option>' +
+                '<option value="1"' + (stStart >= 1 ? ' selected' : '') + '>1 carry</option>';
     let eqOptions = '';
     for (let h = 1; h <= 18; h++) eqOptions += '<option value="' + h + '"' + (h === stEquity ? ' selected' : '') + '>Hole ' + h + '</option>';
     eqOptions += '<option value="19"' + (stEquity === 19 ? ' selected' : '') + '>Off — always rotate</option>';
@@ -340,7 +341,7 @@ function drawMain() {
   document.getElementById("sub").textContent = "River Oaks CC · $" + fmt(TWO_MAN_WIN()) + "/$" + fmt(THREE_MAN_WIN()) +
     " · Lone $" + fmt(LONE_WOLF()) + " · " + (carriesOn() ? "Carries" : "No carries") +
     " · " + (equityStart() <= 18 ? "Equity " + equityStart() : "No equity") +
-    (startCarry() > 0 ? " · Started with " + startCarry() + " carry" + (startCarry() > 1 ? "s" : "") : "");
+    (startCarry() > 0 ? " · Started with 1 carry" : "");
   let { money, carry } = tally();
   let holeNum = holes.length + 1;
   let i = holeNum - 1;
