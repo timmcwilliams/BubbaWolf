@@ -90,6 +90,7 @@ let stakes = { hole: 8, carries: true, equity: 17 };   // $8 for the 3-man side,
 // Game options, set on the setup screen:
 function carriesOn()   { return stakes.carries !== false; }       // ties carry to the next hole?
 function equityStart() { return stakes.equity || 17; }            // hole where the biggest loser picks Wolf (19 = never)
+function startCarry()  { return stakes.startCarry || 0; }         // holes already carrying when the round starts (0-3)
 // Each takes an optional bet; without one it uses the regular hole bet
 function TWO_MAN_WIN(b)   { return (b ?? stakes.hole) * 1.5; }  // $8 -> $12
 function THREE_MAN_WIN(b) { return (b ?? stakes.hole); }        // $8
@@ -157,7 +158,7 @@ function holeResult(h, holeIndex) {
 // =====================================================
 function tally() {
   let money = [0, 0, 0, 0, 0];
-  let carry = 0;
+  let carry = startCarry();   // carries brought in at the start roll just like tied holes
   let log = [];
 
   holes.forEach((h, i) => {
@@ -291,6 +292,9 @@ function drawMain() {
     let st = (last.stakes && last.stakes.hole && localStorage.getItem(ROSTER_KEY)) ? last.stakes : stakes;
     let stCarries = st.carries !== false;
     let stEquity = st.equity || 17;
+    let stStart = st.startCarry || 0;
+    let scOptions = '';
+    for (let c = 0; c <= 3; c++) scOptions += '<option value="' + c + '"' + (c === stStart ? ' selected' : '') + '>' + c + '</option>';
     let eqOptions = '';
     for (let h = 1; h <= 18; h++) eqOptions += '<option value="' + h + '"' + (h === stEquity ? ' selected' : '') + '>Hole ' + h + '</option>';
     eqOptions += '<option value="19"' + (stEquity === 19 ? ' selected' : '') + '>Off — always rotate</option>';
@@ -303,6 +307,8 @@ function drawMain() {
       '<select id="sCarry" style="border-radius:10px">' +
         '<option value="1"' + (stCarries ? ' selected' : '') + '>Yes</option>' +
         '<option value="0"' + (!stCarries ? ' selected' : '') + '>No</option></select></div>' +
+      '<div class="setup-row" style="align-items:center"><span class="name">Carries to start the round</span>' +
+      '<select id="sStart" style="border-radius:10px">' + scOptions + '</select></div>' +
       '<div class="setup-row" style="align-items:center"><span class="name">Biggest loser picks Wolf starting on</span>' +
       '<select id="sEquity" style="border-radius:10px">' + eqOptions + '</select></div>';
     html += '<button class="go" onclick="toOrder()">Next: tee order</button></div>';
@@ -333,7 +339,8 @@ function drawMain() {
 
   document.getElementById("sub").textContent = "River Oaks CC · $" + fmt(TWO_MAN_WIN()) + "/$" + fmt(THREE_MAN_WIN()) +
     " · Lone $" + fmt(LONE_WOLF()) + " · " + (carriesOn() ? "Carries" : "No carries") +
-    " · " + (equityStart() <= 18 ? "Equity " + equityStart() : "No equity");
+    " · " + (equityStart() <= 18 ? "Equity " + equityStart() : "No equity") +
+    (startCarry() > 0 ? " · Started with " + startCarry() + " carry" + (startCarry() > 1 ? "s" : "") : "");
   let { money, carry } = tally();
   let holeNum = holes.length + 1;
   let i = holeNum - 1;
@@ -478,7 +485,8 @@ function readStakes() {
   return {
     hole:    parseFloat(document.getElementById("sHole").value) || 0,
     carries: document.getElementById("sCarry").value === "1",
-    equity:  parseInt(document.getElementById("sEquity").value) || 17
+    equity:  parseInt(document.getElementById("sEquity").value) || 17,
+    startCarry: parseInt(document.getElementById("sStart").value) || 0
   };
 }
 
