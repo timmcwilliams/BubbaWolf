@@ -371,7 +371,12 @@ function drawMain() {
       let rot = teeOrder(rotationWolf(holeNum));
       let losers = [0,1,2,3,4].sort((a, b) => money[a] - money[b] || rot.indexOf(a) - rot.indexOf(b));
       html += '<p class="muted">Biggest loser gets first choice. Tap who takes the Wolf:</p>';
-      for (let p of losers) html += '<button onclick="chooseWolf(' + p + ')">' + players[p] + ' &nbsp;' + dollars(money[p]) + '</button>';
+      for (let p of losers) {
+        let s = strokesOn(p, i);
+        html += '<button' + (s > 0 ? ' class="stroke"' : '') + ' onclick="chooseWolf(' + p + ')">' + players[p] + ' &nbsp;' + dollars(money[p]) +
+                (s > 0 ? ' <span class="dot">' + '●'.repeat(s) + '</span> <span class="muted" style="font-size:17px">gets ' + s + ' stroke' + (s > 1 ? 's' : '') + '</span>' : '') +
+                '</button>';
+      }
       html += '<button class="small" onclick="chooseWolf(' + rotationWolf(holeNum) + ')">Everyone passed — use rotation (' + players[rotationWolf(holeNum)] + ')</button>';
       html += undoButton() + '</div>';
       app.innerHTML = html;
@@ -380,7 +385,11 @@ function drawMain() {
   }
 
   let order = teeOrder(pickedWolf);
-  html += '<div class="wolfline">🐺 ' + players[pickedWolf] + ' is the Wolf</div>';
+  let ws = strokesOn(pickedWolf, i);
+  html += '<div class="wolfline">🐺 ' + players[pickedWolf] + ' is the Wolf' +
+          (ws > 0 ? ' <span class="dot" style="font-size:22px">' + '●'.repeat(ws) + '</span>' +
+                    '<div style="display:inline-block;background:#fff4d6;border:2px solid #d9a520;border-radius:8px;padding:2px 8px;font-size:18px;font-weight:700;margin-left:4px">gets ' + ws + ' stroke' + (ws > 1 ? 's' : '') + '</div>' : '') +
+          '</div>';
   html += '<p class="muted">Tee order: ' + order.map(p => players[p]).join(" → ") + '</p>';
 
   // ---- Step A2: on 17 and 18 the Wolf picks the bet ----
