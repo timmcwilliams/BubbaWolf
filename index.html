@@ -53,6 +53,7 @@
   .score button { width: 60px; height: 60px; min-height: 60px; border-radius: 50%; padding: 0; margin: 0; font-size: 32px; font-weight: 700; text-align: center; }
   .score b { width: 40px; text-align: center; font-size: 32px; }
   .dot { color: #a3200b; font-size: 18px; }
+  button.stroke { background: #fff4d6; border-color: #d9a520; border-width: 3px; font-weight: 700; }
   .verdict { background: #dcebd6; border-radius: 10px; padding: 12px; margin: 12px 0; font-size: 20px; }
   .review { border-bottom: 1px solid #dde3da; padding: 6px 0; cursor: pointer; }
   .review:last-child { border-bottom: none; }
@@ -408,7 +409,12 @@ function drawMain() {
   // ---- Step B: partner ----
   if (pickedPartner === null) {
     html += '<p class="muted">Who does the Wolf take?</p>';
-    for (let p of order.slice(1)) html += '<button onclick="choosePartner(' + p + ')">' + players[p] + '</button>';
+    for (let p of order.slice(1)) {
+      let s = strokesOn(p, i);
+      html += '<button' + (s > 0 ? ' class="stroke"' : '') + ' onclick="choosePartner(' + p + ')">' + players[p] +
+              (s > 0 ? ' <span class="dot">' + '●'.repeat(s) + '</span> <span class="muted" style="font-size:17px">gets ' + s + ' stroke' + (s > 1 ? 's' : '') + '</span>' : '') +
+              '</button>';
+    }
     html += '<button onclick="choosePartner(-1)">🐺 Lone Wolf</button>';
     html += undoButton() + '</div>';
     app.innerHTML = html;
