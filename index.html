@@ -90,7 +90,6 @@ let stakes = { hole: 8, carries: true, equity: 17 };   // $8 for the 3-man side,
 // Game options, set on the setup screen:
 function carriesOn()   { return stakes.carries !== false; }       // ties carry to the next hole?
 function equityStart() { return stakes.equity || 17; }            // hole where the biggest loser picks Wolf (19 = never)
-function startCarry()  { return stakes.startCarry ? 1 : 0; }      // 1 carry at the start (paid on the first hole won), or none
 // Each takes an optional bet; without one it uses the regular hole bet
 function TWO_MAN_WIN(b)   { return (b ?? stakes.hole) * 1.5; }  // $8 -> $12
 function THREE_MAN_WIN(b) { return (b ?? stakes.hole); }        // $8
@@ -98,8 +97,8 @@ function LONE_WOLF(b)     { return (b ?? stakes.hole) * 4; }    // $8 -> $32 tot
 // Holes 17 and 18: the Wolf picks the bet once he's chosen (hole numbers 17, 18)
 const PRESS_HOLES = [17, 18];
 function holeBet(h) { return (h && h.bet != null) ? h.bet : stakes.hole; }
-const MAX_PAID      = 2;  // ties carry over; one hole pays at most 2 holes' worth,
-                          // and any extra carried holes roll to the next hole
+const MAX_PAID      = 2;  // with carries on, a tie carries 1 hole: the next hole won pays 2×.
+                          // No roll — extra tied holes beyond that are dropped, never carried further
 
 // Separate save slot from the original 5-Man Wolf, so the two never overwrite each other
 const SAVE_KEY   = "wolfGame812";
@@ -159,7 +158,6 @@ function holeResult(h, holeIndex) {
 function tally() {
   let money = [0, 0, 0, 0, 0];
   let carry = 0;
-  let startPending = startCarry() > 0;   // the starting carry is paid on the first hole won and never rolls
   let log = [];
 
   holes.forEach((h, i) => {
@@ -173,10 +171,8 @@ function tally() {
       if (carriesOn()) carry++;   // carries off: a tie just washes
       entry.times = 0;
     } else {
-      let riding = carry + 1 + (startPending ? 1 : 0);
-      let times = Math.min(riding, MAX_PAID);
-      carry = Math.max(0, carry + 1 - times);   // only tied holes can roll on; the starting carry never leaves a leftover
-      startPending = false;
+      let times = Math.min(carry + 1, MAX_PAID);
+      carry = 0;   // no roll: once a hole is won the carry is used up
       entry.times = times;
       let wolfWon = (result === "wolf");
       let bet = holeBet(h);   // carried holes are paid at this hole's bet
@@ -195,7 +191,7 @@ function tally() {
     entry.delta = money.map((m, p) => m - before[p]);
   });
 
-  return { money, carry, startPending, log };
+  return { money, carry, log };
 }
 
 function rotationWolf(holeNumber) { return (holeNumber - 1) % 5; }
@@ -294,10 +290,6 @@ function drawMain() {
     let st = (last.stakes && last.stakes.hole && localStorage.getItem(ROSTER_KEY)) ? last.stakes : stakes;
     let stCarries = st.carries !== false;
     let stEquity = st.equity || 17;
-    let stStart = st.startCarry || 0;
-    let scOptions = '';
-    scOptions = '<option value="0"' + (stStart === 0 ? ' selected' : '') + '>None</option>' +
-                '<option value="1"' + (stStart >= 1 ? ' selected' : '') + '>1 carry</option>';
     let eqOptions = '';
     for (let h = 1; h <= 18; h++) eqOptions += '<option value="' + h + '"' + (h === stEquity ? ' selected' : '') + '>Hole ' + h + '</option>';
     eqOptions += '<option value="19"' + (stEquity === 19 ? ' selected' : '') + '>Off — always rotate</option>';
@@ -306,12 +298,10 @@ function drawMain() {
       '<input class="hcp" id="sHole" type="number" inputmode="decimal" step="1" value="' + st.hole + '" oninput="stakePreview()"></div>' +
       '<p class="muted" id="stakeText"></p>' +
       '<h2 style="margin-top:16px">Options</h2>' +
-      '<div class="setup-row" style="align-items:center"><span class="name">Ties carry over</span>' +
+      '<div class="setup-row" style="align-items:center"><span class="name">Carries</span>' +
       '<select id="sCarry" style="border-radius:10px">' +
-        '<option value="1"' + (stCarries ? ' selected' : '') + '>Yes</option>' +
-        '<option value="0"' + (!stCarries ? ' selected' : '') + '>No</option></select></div>' +
-      '<div class="setup-row" style="align-items:center"><span class="name">Carries to start the round</span>' +
-      '<select id="sStart" style="border-radius:10px">' + scOptions + '</select></div>' +
+        '<option value="0"' + (!stCarries ? ' selected' : '') + '>No carries</option>' +
+        '<option value="1"' + (stCarries ? ' selected' : '') + '>1 carry, no roll</option></select></div>' +
       '<div class="setup-row" style="align-items:center"><span class="name">Biggest loser picks Wolf starting on</span>' +
       '<select id="sEquity" style="border-radius:10px">' + eqOptions + '</select></div>';
     html += '<button class="go" onclick="toOrder()">Next: tee order</button></div>';
@@ -341,10 +331,9 @@ function drawMain() {
   }
 
   document.getElementById("sub").textContent = "River Oaks CC · $" + fmt(TWO_MAN_WIN()) + "/$" + fmt(THREE_MAN_WIN()) +
-    " · Lone $" + fmt(LONE_WOLF()) + " · " + (carriesOn() ? "Carries" : "No carries") +
-    " · " + (equityStart() <= 18 ? "Equity " + equityStart() : "No equity") +
-    (startCarry() > 0 ? " · Started with 1 carry" : "");
-  let { money, carry, startPending } = tally();
+    " · Lone $" + fmt(LONE_WOLF()) + " · " + (carriesOn() ? "1 carry" : "No carries") +
+    " · " + (equityStart() <= 18 ? "Equity " + equityStart() : "No equity");
+  let { money, carry } = tally();
   let holeNum = holes.length + 1;
   let i = holeNum - 1;
   let html = "";
@@ -361,7 +350,7 @@ function drawMain() {
 
   if (holeNum > 18) {
     html += '<div class="box"><h2>Round complete 🏁</h2>';
-    if (carry > 0) html += '<p class="muted">' + carry + ' tied hole(s) were still carrying at the end.</p>';
+    if (carry > 0) html += '<p class="muted">' + 'Tie on the last hole — carry went unpaid.</p>';
     html += '<button class="small" onclick="undo()">Undo last hole</button> ' +
             '<button class="small" onclick="newGame()">New round</button></div>';
     app.innerHTML = html;
@@ -369,12 +358,8 @@ function drawMain() {
   }
 
   html += '<div class="box"><h2>Hole ' + holeNum + ' <span class="muted">· Par ' + PAR[i] + ' · Hcp ' + HOLE_HCP[i] + '</span></h2>';
-  let showCarry = carry + (startPending ? 1 : 0);
-  if (showCarry > 0) {
-    let pays = Math.min(showCarry + 1, MAX_PAID);
-    let extra = Math.max(0, carry + 1 - pays);
-    html += '<div class="carry">💰 ' + showCarry + ' hole(s) carrying — this hole pays ' + pays + '×' +
-            (extra > 0 ? ' (' + extra + ' more roll to the next hole)' : '') + '</div>';
+  if (carry > 0) {
+    html += '<div class="carry">💰 Carry — this hole pays ' + Math.min(carry + 1, MAX_PAID) + '×</div>';
   }
 
   // ---- Step A: who is Wolf? ----
@@ -489,8 +474,7 @@ function readStakes() {
   return {
     hole:    parseFloat(document.getElementById("sHole").value) || 0,
     carries: document.getElementById("sCarry").value === "1",
-    equity:  parseInt(document.getElementById("sEquity").value) || 17,
-    startCarry: parseInt(document.getElementById("sStart").value) || 0
+    equity:  parseInt(document.getElementById("sEquity").value) || 17
   };
 }
 
