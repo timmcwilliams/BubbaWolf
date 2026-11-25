@@ -96,7 +96,12 @@ function TWO_MAN_WIN(b)   { return (b ?? stakes.hole) * 1.5; }  // $8 -> $12
 function THREE_MAN_WIN(b) { return (b ?? stakes.hole); }        // $8
 function LONE_WOLF(b)     { return (b ?? stakes.hole) * 4; }    // $8 -> $32 total ($8 from each of the 4)
 // Holes 17 and 18: the Wolf picks the bet once he's chosen (hole numbers 17, 18)
-const PRESS_HOLES = [17, 18];
+// Each can be turned on or off on the setup screen
+function isPressHole(n) {
+  if (n === 17) return stakes.press17 !== false;
+  if (n === 18) return stakes.press18 !== false;
+  return false;
+}
 function holeBet(h) { return (h && h.bet != null) ? h.bet : stakes.hole; }
 const MAX_PAID      = 2;  // with carries on, a tie carries 1 hole: the next hole won pays 2×.
                           // No roll — extra tied holes beyond that are dropped, never carried further
@@ -304,7 +309,9 @@ function drawMain() {
         '<option value="0"' + (!stCarries ? ' selected' : '') + '>No carries</option>' +
         '<option value="1"' + (stCarries ? ' selected' : '') + '>1 carry, no roll</option></select></div>' +
       '<div class="setup-row" style="align-items:center"><span class="name">Biggest loser picks Wolf starting on</span>' +
-      '<select id="sEquity" style="border-radius:10px">' + eqOptions + '</select></div>';
+      '<select id="sEquity" style="border-radius:10px">' + eqOptions + '</select></div>' +
+      yesNo("sP17", "Wolf can raise the bet on 17", st.press17 !== false) +
+      yesNo("sP18", "Wolf can raise the bet on 18", st.press18 !== false);
     html += '<button class="go" onclick="toOrder()">Next: tee order</button></div>';
     app.innerHTML = html;
     stakePreview();
@@ -393,7 +400,7 @@ function drawMain() {
   html += '<p class="muted">Tee order: ' + order.map(p => players[p]).join(" → ") + '</p>';
 
   // ---- Step A2: on 17 and 18 the Wolf picks the bet ----
-  if (PRESS_HOLES.includes(holeNum) && pickedBet === null) {
+  if (isPressHole(holeNum) && pickedBet === null) {
     let base = stakes.hole;
     html += '<p class="muted">Hole ' + holeNum + ': ' + players[pickedWolf] + ' picks the bet (each on 3-man side):</p>';
     for (let m of [1, 2, 3, 4]) {
@@ -409,7 +416,7 @@ function drawMain() {
     app.innerHTML = html;
     return;
   }
-  if (PRESS_HOLES.includes(holeNum)) {
+  if (isPressHole(holeNum)) {
     html += '<div class="carry" style="background:#dbe8f8;color:#0e2440">Hole ' + holeNum + ' bet (Wolf\'s pick): <span class="betbig">$' + fmt(pickedBet) + '</span>' +
             '<div style="margin-top:6px;font-weight:400">3-man $' + fmt(THREE_MAN_WIN(pickedBet)) + ' · 2-man $' + fmt(TWO_MAN_WIN(pickedBet)) + ' · Lone Wolf $' + fmt(LONE_WOLF(pickedBet)) + '</div>' +
             '<button class="small" style="margin-top:6px" onclick="pickedBet = null; draw()">Change bet</button></div>';
@@ -485,11 +492,20 @@ function resetHole() {
 let roster = null;
 let tossOrder = [];
 
+function yesNo(id, label, on) {
+  return '<div class="setup-row" style="align-items:center"><span class="name">' + label + '</span>' +
+    '<select id="' + id + '" style="border-radius:10px">' +
+    '<option value="1"' + (on ? ' selected' : '') + '>Yes</option>' +
+    '<option value="0"' + (!on ? ' selected' : '') + '>No</option></select></div>';
+}
+
 function readStakes() {
   return {
     hole:    parseFloat(document.getElementById("sHole").value) || 0,
     carries: document.getElementById("sCarry").value === "1",
-    equity:  parseInt(document.getElementById("sEquity").value) || 17
+    equity:  parseInt(document.getElementById("sEquity").value) || 17,
+    press17: document.getElementById("sP17").value === "1",
+    press18: document.getElementById("sP18").value === "1"
   };
 }
 
@@ -534,7 +550,7 @@ function bump(p, amount) {
 
 function finishHole() {
   let h = { wolf: pickedWolf, partner: pickedPartner, scores: scores.slice() };
-  if (PRESS_HOLES.includes(holes.length + 1)) h.bet = pickedBet ?? stakes.hole;
+  if (isPressHole(holes.length + 1)) h.bet = pickedBet ?? stakes.hole;
   holes.push(h);
   resetHole(); save(); draw();
 }
