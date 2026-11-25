@@ -158,7 +158,8 @@ function holeResult(h, holeIndex) {
 // =====================================================
 function tally() {
   let money = [0, 0, 0, 0, 0];
-  let carry = startCarry();   // carries brought in at the start roll just like tied holes
+  let carry = 0;
+  let startPending = startCarry() > 0;   // the starting carry is paid on the first hole won and never rolls
   let log = [];
 
   holes.forEach((h, i) => {
@@ -172,9 +173,10 @@ function tally() {
       if (carriesOn()) carry++;   // carries off: a tie just washes
       entry.times = 0;
     } else {
-      let riding = carry + 1;
+      let riding = carry + 1 + (startPending ? 1 : 0);
       let times = Math.min(riding, MAX_PAID);
-      carry = riding - times;
+      carry = Math.max(0, carry + 1 - times);   // only tied holes can roll on; the starting carry never leaves a leftover
+      startPending = false;
       entry.times = times;
       let wolfWon = (result === "wolf");
       let bet = holeBet(h);   // carried holes are paid at this hole's bet
@@ -193,7 +195,7 @@ function tally() {
     entry.delta = money.map((m, p) => m - before[p]);
   });
 
-  return { money, carry, log };
+  return { money, carry, startPending, log };
 }
 
 function rotationWolf(holeNumber) { return (holeNumber - 1) % 5; }
@@ -342,7 +344,7 @@ function drawMain() {
     " · Lone $" + fmt(LONE_WOLF()) + " · " + (carriesOn() ? "Carries" : "No carries") +
     " · " + (equityStart() <= 18 ? "Equity " + equityStart() : "No equity") +
     (startCarry() > 0 ? " · Started with 1 carry" : "");
-  let { money, carry } = tally();
+  let { money, carry, startPending } = tally();
   let holeNum = holes.length + 1;
   let i = holeNum - 1;
   let html = "";
@@ -367,10 +369,11 @@ function drawMain() {
   }
 
   html += '<div class="box"><h2>Hole ' + holeNum + ' <span class="muted">· Par ' + PAR[i] + ' · Hcp ' + HOLE_HCP[i] + '</span></h2>';
-  if (carry > 0) {
-    let pays = Math.min(carry + 1, MAX_PAID);
-    let extra = carry + 1 - pays;
-    html += '<div class="carry">💰 ' + carry + ' hole(s) carrying — this hole pays ' + pays + '×' +
+  let showCarry = carry + (startPending ? 1 : 0);
+  if (showCarry > 0) {
+    let pays = Math.min(showCarry + 1, MAX_PAID);
+    let extra = Math.max(0, carry + 1 - pays);
+    html += '<div class="carry">💰 ' + showCarry + ' hole(s) carrying — this hole pays ' + pays + '×' +
             (extra > 0 ? ' (' + extra + ' more roll to the next hole)' : '') + '</div>';
   }
 
